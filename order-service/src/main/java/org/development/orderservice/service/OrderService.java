@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
     public InventoryResponse[] placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
@@ -50,8 +50,8 @@ public class OrderService {
         MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
         params.forEach(multiValueMap::add);
 
-        InventoryResponse[] inventoryResponses = webClient.get()
-                .uri("http://localhost:8082/api/inventory",
+        InventoryResponse[] inventoryResponses = webClientBuilder.build().get()
+                .uri("http://inventory-service/api/inventory",
                         uriBuilder -> uriBuilder.queryParams(multiValueMap).build())
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)
@@ -60,7 +60,10 @@ public class OrderService {
         boolean allProductsInStock = Arrays.stream(inventoryResponses)
                 .allMatch(InventoryResponse::isInStock);
 
-        if (allProductsInStock) orderRepository.save(order);
+        if (allProductsInStock){
+            orderRepository.save(order);
+            log.info("Order created: {}", order.getOrderNumber());
+        }
         else log.error("Not all products in stock, only: " + Arrays.toString(inventoryResponses));
         return inventoryResponses;
     }
