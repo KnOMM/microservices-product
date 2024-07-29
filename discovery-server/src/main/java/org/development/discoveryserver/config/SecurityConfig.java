@@ -23,28 +23,24 @@ public class SecurityConfig {
     @Value("${eureka.password}")
     private String password;
 
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        System.out.printf(username + " " + password);
-//        UserDetails userDetails = User
-//                .withDefaultPasswordEncoder()
-//                .username(username)
-//                .password(password)
-//                .roles("USER")
-//                .build();
-//
-//        return new InMemoryUserDetailsManager(userDetails);
-//    }
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails userDetails = User
+                .withDefaultPasswordEncoder()
+                .username(username)
+                .password(password)
+                .roles("USER")
+                .build();
+
+        return new InMemoryUserDetailsManager(userDetails);
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
-                        authorizationManagerRequestMatcherRegistry
-                                .anyRequest().authenticated())
-
-                .httpBasic(Customizer.withDefaults());
-        return http.csrf(AbstractHttpConfigurer::disable).securityMatcher("/eureka/**").build();
-//        return http.build();
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(a -> a.anyRequest().authenticated())
+                .httpBasic(Customizer.withDefaults())
+                .build();
     }
 }
