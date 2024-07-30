@@ -1,5 +1,6 @@
 package org.development.inventoryservice.service;
 
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.development.inventoryservice.dto.InventoryResponse;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class InventoryService {
     private final InventoryRepository inventoryRepository;
 
+
     @Transactional(readOnly = true)
     public List<InventoryResponse> isInStock(Map<String, String> skuCodes) {
 
@@ -31,6 +33,7 @@ public class InventoryService {
             }
         }
 
+        log.info("Checking stock inventory");
         return inventoryRepository.findBySkuCodeIn(skuCodesToInteger.keySet()
                         .stream()
                         .toList())

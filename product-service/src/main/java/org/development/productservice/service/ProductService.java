@@ -1,5 +1,6 @@
 package org.development.productservice.service;
 
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.development.productservice.dto.ProductRequest;
@@ -29,7 +30,10 @@ public class ProductService {
         return product;
     }
 
+    @Observed(name = "product.name",
+            contextualName = "getting-products")
     public List<ProductResponse> getAllProducts() {
+        log.info("Getting all products");
         List<Product> products = productRepository.findAll();
         return products.stream().map(this::mapToProductResponse).toList();
     }

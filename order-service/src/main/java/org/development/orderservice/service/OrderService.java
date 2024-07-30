@@ -1,5 +1,9 @@
 package org.development.orderservice.service;
 
+import com.ctc.wstx.shaded.msv_core.util.Uri;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.misc.MultiMap;
@@ -15,9 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,7 +37,13 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final WebClient.Builder webClientBuilder;
+    private final Tracer tracer;
+    private final RestTemplate restTemplate;
 
+
+    @Observed(name = "order.name",
+            contextualName = "Order checks Inventory",
+            lowCardinalityKeyValues = {"test", "value"})
     public InventoryResponse[] placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
@@ -50,21 +63,24 @@ public class OrderService {
         MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
         params.forEach(multiValueMap::add);
 
-        InventoryResponse[] inventoryResponses = webClientBuilder.build().get()
-                .uri("http://inventory-service/api/inventory",
-                        uriBuilder -> uriBuilder.queryParams(multiValueMap).build())
-                .retrieve()
-                .bodyToMono(InventoryResponse[].class)
-                .block();
+//        InventoryResponse[] inventoryResponses = webClientBuilder.build().get()
+//                .uri("http://inventory-service/api/inventory",
+//                        uriBuilder -> uriBuilder.queryParams(multiValueMap).build())
+//                .retrieve()
+//                .bodyToMono(InventoryResponse[].class)
+//                .block();
 
+        URI uri = UriComponentsBuilder.fromUriString("http://inventory-service/api/inventory").queryParams(multiValueMap).build().toUri();
+        InventoryResponse[] inventoryResponses = restTemplate.getForObject(uri, InventoryResponse[].class);
+
+        log.info("Checked values: {}", (Object) inventoryResponses);
         boolean allProductsInStock = Arrays.stream(inventoryResponses)
                 .allMatch(InventoryResponse::isInStock);
 
-        if (allProductsInStock){
+        if (allProductsInStock) {
             orderRepository.save(order);
             log.info("Order created: {}", order.getOrderNumber());
-        }
-        else log.error("Not all products in stock, only: " + Arrays.toString(inventoryResponses));
+        } else log.error("Not all products in stock, only: " + Arrays.toString(inventoryResponses));
         return inventoryResponses;
     }
 

@@ -1,5 +1,6 @@
 package org.development.productservice.controller;
 
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import org.development.productservice.dto.ProductRequest;
 import org.development.productservice.dto.ProductResponse;
