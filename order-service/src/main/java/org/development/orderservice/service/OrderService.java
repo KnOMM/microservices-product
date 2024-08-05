@@ -1,33 +1,27 @@
 package org.development.orderservice.service;
 
-import com.ctc.wstx.shaded.msv_core.util.Uri;
 import io.micrometer.observation.annotation.Observed;
-import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.antlr.v4.runtime.misc.MultiMap;
-import org.development.orderservice.config.WebClientConfig;
 import org.development.orderservice.dto.InventoryResponse;
 import org.development.orderservice.dto.OrderLineItemsDto;
 import org.development.orderservice.dto.OrderRequest;
+import org.development.orderservice.event.OrderPlacedEvent;
 import org.development.orderservice.model.Order;
 import org.development.orderservice.model.OrderLineItems;
 import org.development.orderservice.repository.OrderRepository;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -36,14 +30,10 @@ import java.util.stream.Stream;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final WebClient.Builder webClientBuilder;
-    private final Tracer tracer;
-    private final RestTemplate restTemplate;
+    private final WebClient webClient;
+    private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
+//    private final RestTemplate restTemplate;
 
-
-    @Observed(name = "order.name",
-            contextualName = "Order checks Inventory",
-            lowCardinalityKeyValues = {"test", "value"})
     public InventoryResponse[] placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
@@ -54,7 +44,6 @@ public class OrderService {
 
         order.setOrderLineItemsList(orderLineItemsStream);
 
-//        UriBuilder uriBuilder = UriBuilder.
         Map<String, String> params = orderLineItemsStream.stream()
                 .collect(Collectors.toMap(
                         OrderLineItems::getSkuCode,
@@ -63,21 +52,27 @@ public class OrderService {
         MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
         params.forEach(multiValueMap::add);
 
-//        InventoryResponse[] inventoryResponses = webClientBuilder.build().get()
-//                .uri("http://inventory-service/api/inventory",
-//                        uriBuilder -> uriBuilder.queryParams(multiValueMap).build())
-//                .retrieve()
-//                .bodyToMono(InventoryResponse[].class)
-//                .block();
 
-        URI uri = UriComponentsBuilder.fromUriString("http://inventory-service/api/inventory").queryParams(multiValueMap).build().toUri();
-        InventoryResponse[] inventoryResponses = restTemplate.getForObject(uri, InventoryResponse[].class);
+        // get current span value
+        InventoryResponse[] inventoryResponses;
+        inventoryResponses = webClient.get()
+                .uri("http://inventory-service/api/inventory",
+//                .uri("http://localhost:8082/api/inventory",
+                        uriBuilder -> uriBuilder.queryParams(multiValueMap).build())
+                .retrieve()
+                .bodyToMono(InventoryResponse[].class)
+                .block();
 
-        log.info("Checked values: {}", (Object) inventoryResponses);
+        // alternative with restTemplate
+//        URI uri = UriComponentsBuilder.fromUriString("http://inventory-service/api/inventory").queryParams(multiValueMap).build().toUri();
+//        InventoryResponse[] inventoryResponses = restTemplate.getForObject(uri, InventoryResponse[].class);
+
+
         boolean allProductsInStock = Arrays.stream(inventoryResponses)
                 .allMatch(InventoryResponse::isInStock);
 
         if (allProductsInStock) {
+            kafkaTemplate.send("notifications", new OrderPlacedEvent(order.getOrderNumber()));
             orderRepository.save(order);
             log.info("Order created: {}", order.getOrderNumber());
         } else log.error("Not all products in stock, only: " + Arrays.toString(inventoryResponses));

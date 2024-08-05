@@ -23,9 +23,6 @@ public class InventoryController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @Observed(name = "order.name",
-            contextualName = "Inventory calls DB",
-            lowCardinalityKeyValues = {"test", "value"})
     public List<InventoryResponse> isInStock(@RequestParam Map<String, String> skuCodes) {
         log.info("Received request to get inventory for SKU {}", skuCodes);
         return inventoryService.isInStock(skuCodes);

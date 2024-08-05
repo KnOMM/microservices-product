@@ -24,7 +24,7 @@ public class InventoryService {
 
         Map<String, Integer> skuCodesToInteger = new HashMap<>();
         for (Map.Entry<String, String> entry : skuCodes.entrySet()) {
-            try{
+            try {
                 int value = Integer.parseInt(String.valueOf(entry.getValue()));
                 skuCodesToInteger.put(entry.getKey(), value);
 
@@ -33,7 +33,6 @@ public class InventoryService {
             }
         }
 
-        log.info("Checking stock inventory");
         return inventoryRepository.findBySkuCodeIn(skuCodesToInteger.keySet()
                         .stream()
                         .toList())

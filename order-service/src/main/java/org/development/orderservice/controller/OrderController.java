@@ -1,7 +1,8 @@
 package org.development.orderservice.controller;
 
+import brave.Span;
+import brave.Tracer;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
@@ -22,18 +23,24 @@ import java.util.concurrent.CompletableFuture;
 public class OrderController {
 
     private final OrderService orderService;
+    private final Tracer tracer;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @CircuitBreaker(name = "inventory", fallbackMethod = "fallbackMethod")
     @TimeLimiter(name = "inventory")
-    @Observed(name = "order.name",
-            contextualName = "Order checks Inventory",
-            lowCardinalityKeyValues = {"test", "value"})
+    // Providing additional info in the span
+//    @Observed(name = "order.name",
+//            contextualName = "Order checks Inventory",
+//            lowCardinalityKeyValues = {"test", "value"})
     public CompletableFuture<InventoryResponse[]> placeOrder(@RequestBody OrderRequest orderRequest) {
-
-        log.info("Checking values: {}",orderRequest );
-        return CompletableFuture.supplyAsync(() -> orderService.placeOrder(orderRequest));
+        Span span = tracer.currentSpan();
+        return CompletableFuture.supplyAsync(() -> {
+            // wrapping the method to have same traceId for distributed tracing
+            try (Tracer.SpanInScope ignored = tracer.withSpanInScope(span)) {
+                return orderService.placeOrder(orderRequest);
+            }
+        });
     }
 
     // error: service is unavailable
