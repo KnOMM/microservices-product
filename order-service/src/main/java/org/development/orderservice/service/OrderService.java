@@ -5,6 +5,9 @@ import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.development.orderservice.dto.InventoryResponse;
 import org.development.orderservice.dto.OrderLineItemsDto;
 import org.development.orderservice.dto.OrderRequest;
@@ -32,6 +35,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final WebClient webClient;
     private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
+    private final Tracer tracer;
 //    private final RestTemplate restTemplate;
 
     public InventoryResponse[] placeOrder(OrderRequest orderRequest) {
@@ -72,7 +76,22 @@ public class OrderService {
                 .allMatch(InventoryResponse::isInStock);
 
         if (allProductsInStock) {
-            kafkaTemplate.send("notifications", new OrderPlacedEvent(order.getOrderNumber()));
+            Span span = tracer.nextSpan().name("kafka");
+            try (Tracer.SpanInScope ignore = tracer.withSpan(span)) {
+//                kafkaTemplate.send("notifications", new OrderPlacedEvent(order.getOrderNumber()));
+                // Get the current trace ID from the tracer
+                String traceId = tracer.currentSpan() != null ? tracer.currentSpan().context().traceId() : "no-trace-id";
+
+                // Create headers with the trace ID
+                Headers headers = new RecordHeaders();
+                headers.add("traceId", traceId.getBytes());
+
+                // Create ProducerRecord with headers
+                ProducerRecord<String, OrderPlacedEvent> record = new ProducerRecord<>("notifications", null, null, null, new OrderPlacedEvent(order.getOrderNumber()), headers);
+
+                // Send message
+                kafkaTemplate.send(record);
+            }
             orderRepository.save(order);
             log.info("Order created: {}", order.getOrderNumber());
         } else log.error("Not all products in stock, only: " + Arrays.toString(inventoryResponses));
