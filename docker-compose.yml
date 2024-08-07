@@ -46,14 +46,14 @@ services:
     expose:
       - "27017"
     volumes:
-      - ./mongo-data:/data/db
+      - ./docker/mongo-data:/data/db
 
   #  keycloak mysql persistence
   keycloak-mysql:
     container_name: keycloak-mysql
     image: mysql:5.7
     volumes:
-      - ./mysql_keycloak_data:/var/lib/mysql
+      - ./docker/mysql_keycloak_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: keycloak
@@ -75,7 +75,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./realms/:/opt/keycloak/data/import/
+      - ./docker/realms/:/opt/keycloak/data/import/
     depends_on:
       - keycloak-mysql
 
@@ -338,3 +338,29 @@ services:
       - broker
       - discovery-server
       - api-gateway
+
+  ## Prometheus
+  prometheus:
+    image: prom/prometheus:v2.43.1
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - product-service
+      - inventory-service
+      - order-service
+      - notification-service
+
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
