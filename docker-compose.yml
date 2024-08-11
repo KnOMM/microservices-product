@@ -254,12 +254,12 @@ services:
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
       KAFKA_REST_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
 
-  #  Zipkin config
-  zipkin:
-    image: openzipkin/zipkin
-    container_name: zipkin
-    ports:
-      - "9411:9411"
+  #  #  Zipkin config
+  #  zipkin:
+  #    image: openzipkin/zipkin
+  #    container_name: zipkin
+  #    ports:
+  #      - "9411:9411"
 
   #  Eureka Discovery Server
   discovery-server:
@@ -270,7 +270,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - zipkin
+      - tempo
 
   # Api Gateway
   api-gateway:
@@ -283,7 +283,7 @@ services:
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
     pull_policy: always
     depends_on:
-      - zipkin
+      - tempo
       - discovery-server
       - keycloak
 
@@ -309,7 +309,7 @@ services:
     depends_on:
       - postgres-order
       - broker
-      - zipkin
+      - tempo
       - discovery-server
       - api-gateway
 
@@ -334,7 +334,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
-      - zipkin
+      #      - zipkin
       - broker
       - discovery-server
       - api-gateway
@@ -346,6 +346,8 @@ services:
     restart: unless-stopped
     ports:
       - "9090:9090"
+    #    command:
+    #      - --enable-feature=exemplar-storage
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
@@ -361,6 +363,33 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - ./grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./docker/grafana/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/grafana.ini:/etc/grafana/grafana.ini
+
+  tempo:
+    image: grafana/tempo:2.2.2
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo/tempo.yml:/etc/tempo.yaml:ro
+      - ./tempo/tempo-data:/tmp/tempo
+    ports:
+      - "3110:3100"  # Tempo
+      - "9411:9411" # zipkin
+
+  #    loki:
+  #      image: grafana/loki
+  #      command: [ "-config.file=/etc/loki/local-config.yaml" ]
+  #      ports:
+  #        - "3100:3100"                                   # loki needs to be exposed so it receives logs
+  #      environment:
+  #        - JAEGER_AGENT_HOST=tempo
+  #        - JAEGER_ENDPOINT=http://tempo:14268/api/traces # send traces to Tempo
+  #        - JAEGER_SAMPLER_TYPE=const
+  #        - JAEGER_SAMPLER_PARAM=1
+
+  loki:
+    image: grafana/loki:main
+    command: [ "-config.file=/etc/loki/local-config.yaml" ]
+    ports:
+      - "3100:3100"

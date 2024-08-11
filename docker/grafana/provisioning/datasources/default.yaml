@@ -1,0 +1,55 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prom
+    access: proxy
+    # Access mode - proxy (server in the UI) or direct (browser in the UI).
+    url: http://prometheus:9090
+    jsonData:
+      manageAlerts: true
+      httpMethod: POST
+      cacheLevel: 'Low'
+      exemplarTraceIdDestinations:
+        # Field with internal link pointing to data source in Grafana.
+        # datasourceUid value can be anything, but it should be unique across all defined data source uids.
+        - datasourceUid: tempo
+          name: trace_id
+
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      tracesToLogsV2:
+        # Field with an internal link pointing to a logs data source in Grafana.
+        # datasourceUid value must match the uid value of the logs data source.
+        datasourceUid: loki
+        tags: [ { key: 'service.name', value: 'app' } ]
+  #    tracesToMetrics:
+  #      datasourceUid: prom
+  #      tags: [ { key: 'service.name', value: 'service' }, { key: 'job' } ]
+  #      queries:
+  #        - name: 'Sample query'
+  #          query: 'rate(http_server_requests_seconds_bucket[5m])'
+
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      derivedFields:
+        # Field with internal link pointing to data source in Grafana.
+        # datasourceUid value can be anything, but it should be unique across all defined data source uids.
+        - datasourceUid: tempo
+          matcherRegex: '"traceID":\s*"([^"]+)"'
+          name: TraceID
+          # url will be interpreted as query for the datasource
+          url: '$${__value.raw}'
+  #           optional for URL Label to set a custom display label for the link.
+  #          urlDisplayLabel: 'View Trace'
+
+
