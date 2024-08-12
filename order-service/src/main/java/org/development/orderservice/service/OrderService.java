@@ -76,22 +76,22 @@ public class OrderService {
                 .allMatch(InventoryResponse::isInStock);
 
         if (allProductsInStock) {
-            Span span = tracer.nextSpan().name("kafka");
-            try (Tracer.SpanInScope ignore = tracer.withSpan(span)) {
+//            Span span = tracer.nextSpan().name("kafka");
+//            try (Tracer.SpanInScope ignore = tracer.withSpan(span)) {
 //                kafkaTemplate.send("notifications", new OrderPlacedEvent(order.getOrderNumber()));
-                // Get the current trace ID from the tracer
-                String traceId = tracer.currentSpan() != null ? tracer.currentSpan().context().traceId() : "no-trace-id";
+//                 Get the current trace ID from the tracer
+//                String traceId = tracer.currentSpan() != null ? tracer.currentSpan().context().traceId() : "no-trace-id";
+//
+//                 Create headers with the trace ID
+//                Headers headers = new RecordHeaders();
+//                headers.add("traceId", traceId.getBytes());
 
-                // Create headers with the trace ID
-                Headers headers = new RecordHeaders();
-                headers.add("traceId", traceId.getBytes());
+            // Create ProducerRecord with headers
+//                ProducerRecord<String, OrderPlacedEvent> record = new ProducerRecord<>("notifications", null, null, null, new OrderPlacedEvent(order.getOrderNumber()), headers);
 
-                // Create ProducerRecord with headers
-                ProducerRecord<String, OrderPlacedEvent> record = new ProducerRecord<>("notifications", null, null, null, new OrderPlacedEvent(order.getOrderNumber()), headers);
-
-                // Send message
-                kafkaTemplate.send(record);
-            }
+            // Send message
+            kafkaTemplate.send("notifications", new OrderPlacedEvent(order.getOrderNumber()));
+//            }
             orderRepository.save(order);
             log.info("Order created: {}", order.getOrderNumber());
         } else log.error("Not all products in stock, only: " + Arrays.toString(inventoryResponses));
