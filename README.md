@@ -44,11 +44,37 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
+![graph2.png](screenshots/graph.png)
+
 [![Product Name Screen Shot](./screenshots/img.png)](./screenshots/img.png)
 
 ---
 
+
+## About The Project
+
 The **Order Service** is a Spring Boot-based microservice designed to handle order management within a larger distributed system. This service integrates with various components to provide a robust and scalable solution for managing and processing orders. Below are the key features and functionalities of the Order Service:
+
+- **Microservices Architecture**: Implements both synchronous and asynchronous communication patterns. For asynchronous communication, Kafka is used as the message broker. Synchronous communication is managed with circuit breakers to handle service failures gracefully.
+
+- **Observability**: The project uses a comprehensive observability stack including Grafana, Prometheus, Tempo, and Loki for monitoring, tracing, and logging. Configuration data for these tools is auto-provisioned during startup.
+
+- **Service Discovery**: Eureka is utilized for service registration and discovery, allowing services to locate and communicate with each other efficiently.
+
+- **API Gateway**: An API Gateway is set up as the entry point for all incoming requests, providing routing, load balancing, and security features.
+
+- **Security**: Keycloak is employed as the authentication server to provide Single Sign-On (SSO) functionality, ensuring secure access to the services.
+
+- **Profiles and Configuration**: Profiles are used to streamline development and testing environments, making it easier to manage configurations for different stages of the application lifecycle.
+
+- **Containerization**: Docker is used to containerize the application, facilitating quick deployment and consistency across different environments.
+
+- **Testing**: Plans are in place to include JUnit tests, component tests, and integration tests to ensure the reliability and quality of the service.
+
+This project leverages modern technologies and best practices to build a scalable, secure, and observable microservices-based system.
+
+
+---
 
 ### Key Features
 - **Order Management:** Handles the creation and management of orders, including saving order details and processing order line items.
@@ -134,7 +160,7 @@ Make sure you have the following installed:
 * [Docker](https://www.docker.com/get-started)
 * [Docker Compose](https://docs.docker.com/compose/install/)
 
-### Installation
+### Installation & Usage
 
 1. **Clone the repository**
 
@@ -158,8 +184,10 @@ Make sure you have the following installed:
 
 4. **Access the application**
 
-   After the containers have started, first thing you have to do is get client-secret from keycloak
-you can access the application via the exposed ports on `localhost`. For example, if you have a web service exposed on port 8080, you can access it at [http://localhost:8080](http://localhost:8080).
+   * After the containers have started, first thing you have to do is get client-secret from keycloak:
+go to [http://localhost:8080/](http://localhost:8080/)` -> clients -> spring-cloud-client -> credentials -> regenerate secret`
+   * Set up the postman ![img2.png](./screenshots/img2.png)
+   * Make requests to endpoint (see [Appendix](#appendix))
 
 5. **Check logs**
 
@@ -183,59 +211,9 @@ you can access the application via the exposed ports on `localhost`. For example
 
 
 
-## Getting Started
-
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
-### Installation
-
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/github_username/repo_name.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
-   ```sh
-   git remote set-url origin github_username/repo_name
-   git remote -v # confirm the changes
-   ```
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- USAGE EXAMPLES -->
-## Usage
-
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Feature 1
+- [x] Feature 1
 - [ ] Feature 2
 - [ ] Feature 3
     - [ ] Nested Feature
@@ -260,33 +238,22 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-### Top contributors:
-
-<a href="https://github.com/github_username/repo_name/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=github_username/repo_name" alt="contrib.rocks image" />
-</a>
-
-
 
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See `LICENSE` for more information.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Nazar Zhuhan - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
 
 Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -294,15 +261,72 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 ## Acknowledgments
 
 * []()
-* []()
-* []()
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+* [](https://github.com/othneildrew/Best-README-Template/blob/main/BLANK_README.md)
 
 
+## Appendix
 
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+### API Documentation
+
+#### Order Service API
+
+**Check Product Stock**
+
+- **Endpoint:** `POST /api/order`
+- **Description:** Check if the products from the list are in stock. This endpoint validates the availability of the products and returns their stock status.
+- **URL:** `http://localhost:8181/api/order`
+- **Method:** `POST`
+- **Headers:**
+  - `Content-Type: application/json`
+- **Request Body:**
+
+  ```json
+  {
+      "orderLineItemsDtoList": [
+          {
+              "skuCode": "iphone_13",
+              "price": 120,
+              "quantity": 2
+          },
+          {
+              "skuCode": "iphone_13_red",
+              "price": 120,
+              "quantity": 2
+          }
+      ]
+  }
+  ```
+
+**List Products**
+
+- **Endpoint:** `GET /api/product`
+- **Description:** Retrieve a list of all available products.
+- **URL:** `http://localhost:8181/api/product`
+- **Method:** `GET`
+- **Headers:**
+   - `Content-Type: application/json`
+
+**Add Product**
+
+- **Endpoint:** `POST /api/product`
+- **Description:** Add a new product to the inventory.
+- **URL:** `http://localhost:8181/api/product`
+- **Method:** `POST`
+- **Headers:**
+   - `Content-Type: application/json`
+- **Request Body:**
+
+  ```json
+  {
+      "name": "IPhone",
+      "price": "1200",
+      "description": "Cool phone"
+  }
+  ```
+<p align="right">(<a href="#installation">back to installation</a>)</p>
+```
+
+
 [contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge
 [contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
