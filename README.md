@@ -323,7 +323,7 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
       "description": "Cool phone"
   }
   ```
-<p align="right">(<a href="#installation">back to installation</a>)</p>
+<p align="right">(<a href="#installation--usage">back to installation</a>)</p>
 ```
 
 
