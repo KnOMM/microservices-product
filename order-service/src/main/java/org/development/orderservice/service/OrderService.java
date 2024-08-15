@@ -9,6 +9,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.development.orderservice.dto.InventoryResponse;
+import org.development.orderservice.dto.OrderDto;
 import org.development.orderservice.dto.OrderLineItemsDto;
 import org.development.orderservice.dto.OrderRequest;
 import org.development.orderservice.event.OrderPlacedEvent;
@@ -104,5 +105,12 @@ public class OrderService {
         orderLineItems.setPrice(orderLineItemsDto.getPrice());
         orderLineItems.setSkuCode(orderLineItemsDto.getSkuCode());
         return orderLineItems;
+    }
+
+    public List<OrderDto> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(order ->
+                        new OrderDto(order.getId(), order.getOrderNumber(), order.getOrderLineItemsList()))
+                .collect(Collectors.toList());
     }
 }
