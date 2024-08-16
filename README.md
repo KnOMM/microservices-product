@@ -205,24 +205,7 @@ go to [http://localhost:8080/](http://localhost:8080/)` -> clients -> spring-clo
    docker-compose down -v
    ```
 
-
-
-
-
-
-
-## Roadmap
-
-- [x] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
-
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
+---
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -245,14 +228,14 @@ Don't forget to give the project a star! Thanks again!
 Distributed under the MIT License. See `LICENSE` for more information.
 
 
-
+---
 
 <!-- CONTACT -->
 ## Contact
 
-Nazar Zhuhan - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Nazar Zhuhan - nazarzhuhan@gmail.com
 
-Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
+Project Link: [https://github.com/KnOMM/microservices-product](https://github.com/KnOMM/microservices-product)
 
 
 
@@ -263,6 +246,7 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 * []()
 * [](https://github.com/othneildrew/Best-README-Template/blob/main/BLANK_README.md)
 
+---
 
 ## Appendix
 
