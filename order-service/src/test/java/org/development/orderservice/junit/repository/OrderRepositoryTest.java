@@ -26,16 +26,12 @@ public class OrderRepositoryTest {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:13-alpine");
+    private static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:13-alpine")
+            .withReuse(true)
+            ;
 
     @Autowired
     OrderRepository orderRepository;
-
-    @Test
-    void connectionEstablished() {
-        assertThat(container.isCreated()).isTrue();
-        assertThat(container.isRunning()).isTrue();
-    }
 
     @BeforeEach
     void setUp() {
@@ -51,5 +47,18 @@ public class OrderRepositoryTest {
                 .build();
 
         orderRepository.save(order);
+    }
+
+    @Test
+    void connectionEstablished() {
+        assertThat(container.isCreated()).isTrue();
+        assertThat(container.isRunning()).isTrue();
+    }
+
+    @Test
+    void shouldReturnAllOrders() {
+        List<Order> all = orderRepository.findAll();
+        assertThat(all.size()).isEqualTo(1);
+        assertThat(all.get(0).getOrderNumber()).isEqualTo("order-number1");
     }
 }

@@ -23,7 +23,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,7 +46,7 @@ public class OrderService {
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderLineItems> orderLineItemsStream = orderRequest.getOrderLineItemsDtoList()
                 .stream()
-                .map(this::mapFromDto)
+                .map(OrderService::mapFromDto)
                 .toList();
 
         order.setOrderLineItemsList(orderLineItemsStream);
@@ -60,10 +62,12 @@ public class OrderService {
 
         // get current span value
         InventoryResponse[] inventoryResponses;
+
+        URI uri = UriComponentsBuilder.fromUriString("/api/inventory").queryParams(multiValueMap).build().toUri();
         inventoryResponses = webClient.get()
-                .uri("http://inventory-service/api/inventory",
-//                .uri("http://localhost:8082/api/inventory",
-                        uriBuilder -> uriBuilder.queryParams(multiValueMap).build())
+//                .uri("http://inventory-service/api/inventory",
+//                        uriBuilder -> uriBuilder.queryParams(multiValueMap).build())
+                .uri(uri)
                 .retrieve()
                 .bodyToMono(InventoryResponse[].class)
                 .block();
@@ -99,7 +103,7 @@ public class OrderService {
         return inventoryResponses;
     }
 
-    private OrderLineItems mapFromDto(OrderLineItemsDto orderLineItemsDto) {
+    public static OrderLineItems mapFromDto(OrderLineItemsDto orderLineItemsDto) {
         OrderLineItems orderLineItems = new OrderLineItems();
         orderLineItems.setQuantity(orderLineItemsDto.getQuantity());
         orderLineItems.setPrice(orderLineItemsDto.getPrice());

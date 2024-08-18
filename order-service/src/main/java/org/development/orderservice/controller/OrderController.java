@@ -42,9 +42,15 @@ public class OrderController {
                 boolean allProductsInStock = Arrays.stream(inventoryResponses)
                         .allMatch(InventoryResponse::isInStock);
                 if (allProductsInStock) {
-                    return ResponseEntity.status(HttpStatus.CREATED).body(inventoryResponses);
+                    return ResponseEntity
+                            .status(HttpStatus.CREATED)
+                            .body(inventoryResponses)
+                            ;
                 }
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(inventoryResponses);
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(inventoryResponses)
+                        ;
             }
         });
     }
@@ -52,11 +58,16 @@ public class OrderController {
     // error: service is unavailable
     public CompletableFuture<ResponseEntity<InventoryResponse[]>> fallbackMethod(OrderRequest orderRequest, WebClientResponseException exception) {
         log.error(exception.getMessage());
-        return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new InventoryResponse[0]));
+        return CompletableFuture.completedFuture(ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new InventoryResponse[0])
+        )
+                ;
     }
 
     @GetMapping
     public List<OrderDto> getOrders() {
-        return orderService.getAllOrders();
+        return orderService.getAllOrders()
+                ;
     }
 }
