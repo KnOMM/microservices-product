@@ -46,7 +46,11 @@
 
 ![graph2.png](screenshots/graph.png)
 
-[![Product Name Screen Shot](./screenshots/img.png)](./screenshots/img.png)
+
+![logs-to-traces.png](screenshots/logs-to-traces.png)
+
+
+[//]: # ([![Product Name Screen Shot]&#40;./screenshots/img.png&#41;]&#40;./screenshots/img.png&#41;)
 
 ---
 
@@ -69,10 +73,9 @@ The **Order Service** is a Spring Boot-based microservice designed to handle ord
 
 - **Containerization**: Docker is used to containerize the application, facilitating quick deployment and consistency across different environments.
 
-- **Testing**: Plans are in place to include JUnit tests, component tests, and integration tests to ensure the reliability and quality of the service.
-
+- **Testing**: To ensure the reliability and quality of the order-service, a comprehensive testing strategy has been implemented. This includes slice JUnit tests focused on the presentation layer (controllers), allowing for isolated testing of controller logic with mocked dependencies. Additionally, integration tests are conducted using Testcontainers, which provide a realistic testing environment by spinning up necessary dependencies such as databases in Docker containers. These tests validate the correct integration of the service with its external dependencies. This layered testing approach ensures that both individual components and the service as a whole perform as expected. Future plans include expanding slice tests to other layers and adding end-to-end tests to cover the complete application flow.
 This project leverages modern technologies and best practices to build a scalable, secure, and observable microservices-based system.
-
+- **Continuous Integration (CI) Setup:** in plans
 
 ---
 
@@ -196,8 +199,22 @@ go to [http://localhost:8080/](http://localhost:8080/)` -> clients -> spring-clo
    ```sh
    docker-compose logs
    ```
+   
+6. **See logs/metrics/traces under http://localhost:3000**
 
-6. **Stop the containers**
+    Username: root
+
+    Password: root
+
+    ![logs.jpg](screenshots/logs.jpg)
+
+    ![logs-connector.jpg](screenshots/logs-connector.jpg)
+
+    Go to explore and find the logs, datasources are provisioned.
+    You can go from logs to traces and vice versa as well as make use of metrics exporters
+
+
+7. **Stop the containers**
 
    When you're done, stop the containers with:
 
@@ -243,8 +260,10 @@ Project Link: [https://github.com/KnOMM/microservices-product](https://github.co
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* [](https://github.com/othneildrew/Best-README-Template/blob/main/BLANK_README.md)
+* [Programming Techie](https://www.youtube.com/@ProgrammingTechie) - tutorials
+* [WebClient Testing](https://www.youtube.com/watch?v=0jyKgEz0Yn8)
+* [Testcontainers](https://www.youtube.com/watch?v=erp-7MCK5BU)
+* [README.md template](https://github.com/othneildrew/Best-README-Template/blob/main/BLANK_README.md)
 
 ---
 
